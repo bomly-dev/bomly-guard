@@ -1,0 +1,82 @@
+name: 'Bomly Review'
+description: 'Review dependency changes in pull requests with bomly diff'
+author: 'Bomly'
+inputs:
+  repo-token:
+    description: Token for repository API access.
+    required: false
+    default: ${{ github.token }}
+  bomly-path:
+    description: Path or command name for the bomly CLI executable.
+    required: false
+    default: bomly
+  fail-on-severity:
+    description: Lowest vulnerability severity that should fail review.
+    required: false
+  fail-on-scopes:
+    description: Comma-separated dependency scopes that may fail review.
+    required: false
+  base-ref:
+    description: Base git ref to compare.
+    required: false
+  head-ref:
+    description: Head git ref to compare.
+    required: false
+  config-file:
+    description: Local config path or owner/repo/path@ref external config reference.
+    required: false
+  external-repo-token:
+    description: Token for reading an external config file.
+    required: false
+  allow-licenses:
+    description: Comma-separated SPDX licenses to allow.
+    required: false
+  deny-licenses:
+    description: Comma-separated SPDX licenses to deny.
+    required: false
+  allow-dependencies-licenses:
+    description: Comma-separated package URLs exempt from license policy.
+    required: false
+  allow-ghsas:
+    description: Comma-separated vulnerability IDs to allow.
+    required: false
+  deny-packages:
+    description: Comma-separated package URLs to deny.
+    required: false
+  deny-groups:
+    description: Comma-separated package URL namespaces to deny.
+    required: false
+  protected-packages:
+    description: Comma-separated package names to protect from typosquatting.
+    required: false
+  typosquat-threshold:
+    description: Similarity threshold for suspicious package names.
+    required: false
+  typosquat-mode:
+    description: Typosquatting policy mode, warn or fail.
+    required: false
+  warn-only:
+    description: Downgrade failing findings to warnings.
+    required: false
+  comment-summary-in-pr:
+    description: Comment mode: never, always, or on-failure.
+    required: false
+  show-patched-versions:
+    description: Show patched versions when available.
+    required: false
+outputs:
+  comment-content:
+    description: Prepared dependency review markdown comment.
+  dependency-changes:
+    description: All dependency changes as JSON.
+  vulnerable-changes:
+    description: Introduced vulnerability findings as JSON.
+  invalid-license-changes:
+    description: Introduced license findings as JSON.
+  denied-changes:
+    description: Introduced denied package findings as JSON.
+  suspicious-package-changes:
+    description: Introduced suspicious package findings as JSON.
+runs:
+  using: 'node24'
+  main: 'dist/index.js'
