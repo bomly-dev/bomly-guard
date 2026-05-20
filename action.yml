@@ -176,6 +176,12 @@ runs:
         SUMMARY_MD: ${{ steps.run.outputs.summary-md }}
       run: node "${{ github.action_path }}/scripts/extract-outputs.js"
 
+    - name: Write job summary
+      shell: bash
+      env:
+        SUMMARY_MD: ${{ steps.run.outputs.summary-md }}
+      run: bash "${{ github.action_path }}/scripts/append-summary.sh"
+
     - name: Upload SARIF
       id: upload-sarif
       if: ${{ steps.run.outputs.sarif-file != '' }}
