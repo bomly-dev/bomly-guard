@@ -114,9 +114,11 @@ runs:
       shell: bash
       env:
         INPUT_VERSION: ${{ inputs.version }}
-        GH_TOKEN: ${{ inputs.cli-repo-token }}
+        INPUT_CLI_REPO_TOKEN: ${{ inputs.cli-repo-token }}
+        INPUT_REPO_TOKEN: ${{ inputs.repo-token }}
       run: |
         set -euo pipefail
+        export GH_TOKEN="${INPUT_CLI_REPO_TOKEN:-$INPUT_REPO_TOKEN}"
         version="$INPUT_VERSION"
         if [ "$version" = "latest" ]; then
           version="$(gh release view --repo bomly-dev/bomly-cli --json tagName -q '.tagName')"
@@ -139,9 +141,11 @@ runs:
         TARGET_ARCH: ${{ steps.platform.outputs.arch }}
         ARCHIVE_EXT: ${{ steps.platform.outputs.ext }}
         BINARY_NAME: ${{ steps.platform.outputs.binary }}
-        GH_TOKEN: ${{ inputs.cli-repo-token }}
+        INPUT_CLI_REPO_TOKEN: ${{ inputs.cli-repo-token }}
+        INPUT_REPO_TOKEN: ${{ inputs.repo-token }}
       run: |
         set -euo pipefail
+        export GH_TOKEN="${INPUT_CLI_REPO_TOKEN:-$INPUT_REPO_TOKEN}"
         archive="bomly_${VERSION}_${TARGET_OS}_${TARGET_ARCH}.${ARCHIVE_EXT}"
         work_dir="$(mktemp -d)"
         trap 'rm -rf "$work_dir"' EXIT
