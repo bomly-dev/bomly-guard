@@ -16,6 +16,7 @@ permissions:
   contents: read
   pull-requests: write
   issues: write
+  security-events: write
 
 jobs:
   bomly-review:
@@ -37,6 +38,7 @@ jobs:
 | `version`                                | `latest`              | Bomly CLI release to install, such as `latest`, `v0.4.6`, or `0.4.6`.                                                                     |
 | `repo-token`                             | `${{ github.token }}` | Token for current-repository API access and pull request comments.                                                                        |
 | `cli-repo-token`                         | `${{ github.token }}` | Token for reading Bomly CLI releases. Use a token with read access to `bomly-dev/bomly-cli` when running from another private repository. |
+| `log-level`                              | `verbose`             | Bomly CLI log level: `quiet`, `verbose`, or `debug`.                                                                                      |
 | `base-ref` / `head-ref`                  | inferred              | Explicit refs to compare outside pull request or merge group events.                                                                      |
 | `config-file`                            |                       | Local Bomly config path or `owner/repo/path@ref` external config reference.                                                               |
 | `external-repo-token`                    | `repo-token`          | Token for private external config repositories.                                                                                           |
@@ -59,6 +61,7 @@ jobs:
 - `invalid-license-changes`: introduced license findings.
 - `denied-changes`: introduced denied package findings.
 - `suspicious-package-changes`: introduced suspicious package findings.
+- `sarif-file`: path to the generated SARIF file uploaded to code scanning when permissions allow.
 
 ## Parity notes
 
@@ -67,5 +70,9 @@ Supported:
 - pull request, pull request target, merge group, and explicit ref inference
 - severity, scope, license, vulnerability allowlist, package deny, and warning policy inputs
 - local and external config files
-- job summaries, idempotent PR comments, and machine-readable outputs
+- job summaries, capped idempotent PR comments, SARIF upload, and machine-readable outputs
 - patched-version summary display when CLI payloads expose `fixed_in`
+
+SARIF upload uses `github/codeql-action/upload-sarif` and requires
+`security-events: write`. Upload failures are warnings; Bomly policy evaluation
+still controls the final action result.
