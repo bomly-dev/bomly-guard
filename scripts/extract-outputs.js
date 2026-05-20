@@ -34,9 +34,6 @@ for (const [name, value] of Object.entries(values)) {
   writeOutput(name, value);
 }
 
-if (process.env.GITHUB_STEP_SUMMARY) {
-  fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, summary);
-}
 console.log(
   `Extracted ${introduced.length} introduced findings (${failing.length} failing)`,
 );
