@@ -15,6 +15,7 @@ on:
 permissions:
   contents: read
   pull-requests: write
+  issues: write
 
 jobs:
   bomly-review:
@@ -31,23 +32,24 @@ jobs:
 
 ## Inputs
 
-| Input | Default | Description |
-| --- | --- | --- |
-| `version` | `latest` | Bomly CLI release to install, such as `latest`, `v0.4.6`, or `0.4.6`. |
-| `repo-token` | `${{ github.token }}` | Token for GitHub API access and release lookup. |
-| `base-ref` / `head-ref` | inferred | Explicit refs to compare outside pull request or merge group events. |
-| `config-file` | | Local Bomly config path or `owner/repo/path@ref` external config reference. |
-| `external-repo-token` | `repo-token` | Token for private external config repositories. |
-| `fail-on-severity` | | Passed to `bomly diff --fail-on`. |
-| `fail-on-scopes` | | Comma-separated values passed as repeated `--fail-on-scope`. |
-| `allow-licenses` / `deny-licenses` | | Comma-separated SPDX policy values. |
-| `allow-dependencies-licenses` | | Comma-separated package URLs exempt from license policy. |
-| `allow-ghsas` | | Comma-separated vulnerability IDs to allow. |
-| `deny-packages` / `deny-groups` | | Comma-separated package URL deny policy values. |
-| `protected-packages` | | Comma-separated canonical package names for typo protection. |
-| `typosquat-threshold` / `typosquat-mode` | | Suspicious package policy tuning. |
-| `warn-only` | `false` | Passes `--warn-only` when `true`. |
-| `comment-summary-in-pr` | `never` | One of `never`, `always`, or `on-failure`. |
+| Input                                    | Default               | Description                                                                                                                               |
+| ---------------------------------------- | --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| `version`                                | `latest`              | Bomly CLI release to install, such as `latest`, `v0.4.6`, or `0.4.6`.                                                                     |
+| `repo-token`                             | `${{ github.token }}` | Token for current-repository API access and pull request comments.                                                                        |
+| `cli-repo-token`                         | `${{ github.token }}` | Token for reading Bomly CLI releases. Use a token with read access to `bomly-dev/bomly-cli` when running from another private repository. |
+| `base-ref` / `head-ref`                  | inferred              | Explicit refs to compare outside pull request or merge group events.                                                                      |
+| `config-file`                            |                       | Local Bomly config path or `owner/repo/path@ref` external config reference.                                                               |
+| `external-repo-token`                    | `repo-token`          | Token for private external config repositories.                                                                                           |
+| `fail-on-severity`                       |                       | Passed to `bomly diff --fail-on`.                                                                                                         |
+| `fail-on-scopes`                         |                       | Comma-separated values passed as repeated `--fail-on-scope`.                                                                              |
+| `allow-licenses` / `deny-licenses`       |                       | Comma-separated SPDX policy values.                                                                                                       |
+| `allow-dependencies-licenses`            |                       | Comma-separated package URLs exempt from license policy.                                                                                  |
+| `allow-ghsas`                            |                       | Comma-separated vulnerability IDs to allow.                                                                                               |
+| `deny-packages` / `deny-groups`          |                       | Comma-separated package URL deny policy values.                                                                                           |
+| `protected-packages`                     |                       | Comma-separated canonical package names for typo protection.                                                                              |
+| `typosquat-threshold` / `typosquat-mode` |                       | Suspicious package policy tuning.                                                                                                         |
+| `warn-only`                              | `false`               | Passes `--warn-only` when `true`.                                                                                                         |
+| `comment-summary-in-pr`                  | `never`               | One of `never`, `always`, or `on-failure`.                                                                                                |
 
 ## Outputs
 

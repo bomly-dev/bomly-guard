@@ -1,9 +1,13 @@
-name: 'Bomly Review'
-description: 'Review dependency changes in pull requests with bomly diff'
-author: 'Bomly'
+name: "Bomly Review"
+description: "Review dependency changes in pull requests with bomly diff"
+author: "Bomly"
 inputs:
   repo-token:
     description: Token for repository API access.
+    required: false
+    default: ${{ github.token }}
+  cli-repo-token:
+    description: Token for reading Bomly CLI releases.
     required: false
     default: ${{ github.token }}
   version:
@@ -59,7 +63,7 @@ inputs:
     description: Downgrade failing findings to warnings.
     required: false
   comment-summary-in-pr:
-    description: 'Comment mode: never, always, or on-failure.'
+    description: "Comment mode: never, always, or on-failure."
     required: false
 outputs:
   comment-content:
@@ -110,7 +114,7 @@ runs:
       shell: bash
       env:
         INPUT_VERSION: ${{ inputs.version }}
-        GH_TOKEN: ${{ inputs.repo-token }}
+        GH_TOKEN: ${{ inputs.cli-repo-token }}
       run: |
         set -euo pipefail
         version="$INPUT_VERSION"
@@ -135,16 +139,20 @@ runs:
         TARGET_ARCH: ${{ steps.platform.outputs.arch }}
         ARCHIVE_EXT: ${{ steps.platform.outputs.ext }}
         BINARY_NAME: ${{ steps.platform.outputs.binary }}
+        GH_TOKEN: ${{ inputs.cli-repo-token }}
       run: |
         set -euo pipefail
         archive="bomly_${VERSION}_${TARGET_OS}_${TARGET_ARCH}.${ARCHIVE_EXT}"
-        base_url="https://github.com/bomly-dev/bomly-cli/releases/download/${VERSION}"
         work_dir="$(mktemp -d)"
         trap 'rm -rf "$work_dir"' EXIT
 
         echo "::group::Downloading Bomly ${VERSION}"
-        curl -fsSL --retry 3 -o "${work_dir}/${archive}" "${base_url}/${archive}"
-        curl -fsSL --retry 3 -o "${work_dir}/SHA256SUMS" "${base_url}/SHA256SUMS"
+        gh release download "$VERSION" \
+          --repo bomly-dev/bomly-cli \
+          --pattern "$archive" \
+          --pattern SHA256SUMS \
+          --dir "$work_dir" \
+          --clobber
 
         expected_hash="$(awk -v archive="$archive" '{name=$NF; sub(/^dist\//, "", name); if (name == archive) {print $1; exit}}' "${work_dir}/SHA256SUMS")"
         if [ -z "$expected_hash" ]; then
