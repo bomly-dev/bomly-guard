@@ -69,6 +69,10 @@ inputs:
   comment-summary-in-pr:
     description: "Comment mode: never, always, or on-failure."
     required: false
+  upload-sarif:
+    description: "SARIF upload mode: auto, true, or false. Auto skips unsupported private repos cleanly."
+    required: false
+    default: auto
 outputs:
   comment-content:
     description: Prepared dependency review markdown summary.
@@ -182,9 +186,18 @@ runs:
         SUMMARY_MD: ${{ steps.run.outputs.summary-md }}
       run: bash "${{ github.action_path }}/scripts/append-summary.sh"
 
+    - name: Check SARIF upload support
+      id: sarif
+      shell: bash
+      env:
+        INPUT_UPLOAD_SARIF: ${{ inputs.upload-sarif }}
+        GH_TOKEN: ${{ inputs.repo-token }}
+        SARIF_FILE: ${{ steps.run.outputs.sarif-file }}
+      run: bash "${{ github.action_path }}/scripts/check-sarif-upload.sh"
+
     - name: Upload SARIF
       id: upload-sarif
-      if: ${{ steps.run.outputs.sarif-file != '' }}
+      if: ${{ steps.sarif.outputs.enabled == 'true' }}
       continue-on-error: true
       uses: github/codeql-action/upload-sarif@v4
       with:
@@ -192,7 +205,7 @@ runs:
         category: bomly
 
     - name: Report SARIF upload status
-      if: ${{ steps.run.outputs.sarif-file != '' && steps.upload-sarif.outcome == 'failure' }}
+      if: ${{ steps.sarif.outputs.enabled == 'true' && steps.upload-sarif.outcome == 'failure' }}
       shell: bash
       run: echo "::warning::Bomly SARIF upload failed. Bomly policy result will still determine this job."
 

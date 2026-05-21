@@ -13,6 +13,7 @@ on:
   pull_request:
 
 permissions:
+  actions: read
   contents: read
   pull-requests: write
   issues: write
@@ -52,6 +53,7 @@ jobs:
 | `typosquat-threshold` / `typosquat-mode` |                       | Suspicious package policy tuning.                                                                                                         |
 | `warn-only`                              | `false`               | Passes `--warn-only` when `true`.                                                                                                         |
 | `comment-summary-in-pr`                  | `never`               | One of `never`, `always`, or `on-failure`.                                                                                                |
+| `upload-sarif`                           | `auto`                | One of `auto`, `true`, or `false`. `auto` skips upload cleanly when code scanning is unavailable.                                          |
 
 ## Outputs
 
@@ -73,6 +75,8 @@ Supported:
 - job summaries, capped idempotent PR comments, SARIF upload, and machine-readable outputs
 - patched-version summary display when CLI payloads expose `fixed_in`
 
-SARIF upload uses `github/codeql-action/upload-sarif` and requires
-`security-events: write`. Upload failures are warnings; Bomly policy evaluation
-still controls the final action result.
+SARIF upload uses `github/codeql-action/upload-sarif` when supported. GitHub
+requires `security-events: write`, and private repositories also require
+`actions: read` plus GitHub Code Security enabled. The default `upload-sarif:
+auto` skips upload cleanly when those requirements are not met; Bomly policy
+evaluation still controls the final action result.
