@@ -82,11 +82,6 @@ jobs:
             gh release create "${TAG}" --title "${notes}" --notes "${notes}"
           fi
 
-      - name: Move major tag
-        env:
-          MAJOR_TAG: ${{ steps.release.outputs.major }}
-        run: |
-          set -euo pipefail
        - name: Move major tag
          env:
            MAJOR_TAG: ${{ steps.release.outputs.major }}
