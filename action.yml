@@ -1,6 +1,9 @@
-name: "Bomly Review"
+name: "Bomly Dependency Review"
 description: "Review dependency changes in pull requests with bomly diff"
 author: "Bomly"
+branding:
+  icon: "shield"
+  color: "orange"
 inputs:
   repo-token:
     description: Token for repository API access.
@@ -18,14 +21,8 @@ inputs:
     description: Bomly CLI log level, one of quiet, verbose, or debug.
     required: false
     default: verbose
-  fail-on-severity:
-    description: Lowest vulnerability severity that should fail review.
-    required: false
-  fail-on-scopes:
-    description: Comma-separated dependency scopes that may fail review.
-    required: false
   base-ref:
-    description: Base git ref to compare.
+    description: Base git ref to compare. Pull requests default to the PR merge base.
     required: false
   head-ref:
     description: Head git ref to compare.
@@ -36,16 +33,31 @@ inputs:
   external-repo-token:
     description: Token for reading an external config file.
     required: false
+  enrich:
+    description: Enrich packages with external license and vulnerability data.
+    required: false
+    default: "true"
+  audit:
+    description: Evaluate policy and create findings from package vulnerability data.
+    required: false
+    default: "true"
+  analyze:
+    description: Run reachability analysis for supported ecosystems.
+    required: false
+    default: "false"
+  fail-on:
+    description: Comma-separated policy constraints that should fail review.
+    required: false
   allow-licenses:
     description: Comma-separated SPDX licenses to allow.
     required: false
   deny-licenses:
     description: Comma-separated SPDX licenses to deny.
     required: false
-  allow-dependencies-licenses:
+  license-exempt-packages:
     description: Comma-separated package URLs exempt from license policy.
     required: false
-  allow-ghsas:
+  allow-vulnerability-ids:
     description: Comma-separated vulnerability IDs to allow.
     required: false
   deny-packages:
@@ -66,9 +78,33 @@ inputs:
   warn-only:
     description: Downgrade failing findings to warnings.
     required: false
+    default: "false"
+  ecosystems:
+    description: Ecosystem selectors passed to bomly diff --ecosystems.
+    required: false
+  detectors:
+    description: Detector selectors passed to bomly diff --detectors.
+    required: false
+  matchers:
+    description: Matcher selectors passed to bomly diff --matchers.
+    required: false
+  auditors:
+    description: Auditor selectors passed to bomly diff --auditors.
+    required: false
+  analyzers:
+    description: Analyzer selectors passed to bomly diff --analyzers.
+    required: false
+  install-first:
+    description: Run detector-specific dependency installation before resolving graphs.
+    required: false
+    default: "false"
+  install-args:
+    description: Comma-separated detector-specific install arguments.
+    required: false
   comment-summary-in-pr:
     description: "Comment mode: never, always, or on-failure."
     required: false
+    default: never
   upload-sarif:
     description: "SARIF upload mode: auto, true, or false. Auto skips unsupported private repos cleanly."
     required: false
@@ -134,10 +170,14 @@ runs:
       run: node "${{ github.action_path }}/scripts/resolve-refs.js"
 
     - name: Fetch refs
+      id: fetch
       shell: bash
       env:
         BASE_REF: ${{ steps.refs.outputs.base }}
         HEAD_REF: ${{ steps.refs.outputs.head }}
+        BASE_FETCH_REF: ${{ steps.refs.outputs.base-fetch-ref }}
+        HEAD_FETCH_REF: ${{ steps.refs.outputs.head-fetch-ref }}
+        USE_MERGE_BASE: ${{ steps.refs.outputs.use-merge-base }}
       run: bash "${{ github.action_path }}/scripts/fetch-refs.sh"
 
     - name: Prepare config
@@ -153,22 +193,31 @@ runs:
       id: run
       shell: bash
       env:
-        BASE_REF: ${{ steps.refs.outputs.base }}
-        HEAD_REF: ${{ steps.refs.outputs.head }}
+        BASE_REF: ${{ steps.fetch.outputs.base }}
+        HEAD_REF: ${{ steps.fetch.outputs.head }}
         CONFIG_FILE: ${{ steps.config.outputs.path }}
         INPUT_LOG_LEVEL: ${{ inputs.log-level }}
-        INPUT_FAIL_ON_SEVERITY: ${{ inputs.fail-on-severity }}
-        INPUT_FAIL_ON_SCOPES: ${{ inputs.fail-on-scopes }}
+        INPUT_ENRICH: ${{ inputs.enrich }}
+        INPUT_AUDIT: ${{ inputs.audit }}
+        INPUT_ANALYZE: ${{ inputs.analyze }}
+        INPUT_FAIL_ON: ${{ inputs.fail-on }}
         INPUT_ALLOW_LICENSES: ${{ inputs.allow-licenses }}
         INPUT_DENY_LICENSES: ${{ inputs.deny-licenses }}
-        INPUT_ALLOW_DEPENDENCIES_LICENSES: ${{ inputs.allow-dependencies-licenses }}
-        INPUT_ALLOW_GHSAS: ${{ inputs.allow-ghsas }}
+        INPUT_LICENSE_EXEMPT_PACKAGES: ${{ inputs.license-exempt-packages }}
+        INPUT_ALLOW_VULNERABILITY_IDS: ${{ inputs.allow-vulnerability-ids }}
         INPUT_DENY_PACKAGES: ${{ inputs.deny-packages }}
         INPUT_DENY_GROUPS: ${{ inputs.deny-groups }}
         INPUT_PROTECTED_PACKAGES: ${{ inputs.protected-packages }}
         INPUT_TYPOSQUAT_THRESHOLD: ${{ inputs.typosquat-threshold }}
         INPUT_TYPOSQUAT_MODE: ${{ inputs.typosquat-mode }}
         INPUT_WARN_ONLY: ${{ inputs.warn-only }}
+        INPUT_ECOSYSTEMS: ${{ inputs.ecosystems }}
+        INPUT_DETECTORS: ${{ inputs.detectors }}
+        INPUT_MATCHERS: ${{ inputs.matchers }}
+        INPUT_AUDITORS: ${{ inputs.auditors }}
+        INPUT_ANALYZERS: ${{ inputs.analyzers }}
+        INPUT_INSTALL_FIRST: ${{ inputs.install-first }}
+        INPUT_INSTALL_ARGS: ${{ inputs.install-args }}
         INPUT_COMMENT_SUMMARY_IN_PR: ${{ inputs.comment-summary-in-pr }}
       run: bash "${{ github.action_path }}/scripts/run-diff.sh"
 
