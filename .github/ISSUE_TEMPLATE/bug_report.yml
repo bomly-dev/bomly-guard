@@ -1,0 +1,38 @@
+name: Bug report
+description: Report incorrect behavior in the Bomly Dependency Review Action
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to file a bug. Do not report security vulnerabilities here; use the repository's Security tab instead.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: A clear description of the bug and what you expected instead.
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      description: Include the workflow snippet, event type, and relevant action logs.
+      render: yaml
+    validations:
+      required: true
+  - type: textarea
+    id: version
+    attributes:
+      label: Action and Bomly versions
+      description: Include the action ref and Bomly CLI version if pinned.
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant output
+      description: Paste relevant logs. Scrub anything sensitive.
+      render: shell
+    validations:
+      required: false
