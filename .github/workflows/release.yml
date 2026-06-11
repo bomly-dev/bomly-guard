@@ -87,5 +87,11 @@ jobs:
           MAJOR_TAG: ${{ steps.release.outputs.major }}
         run: |
           set -euo pipefail
-          git tag -f "${MAJOR_TAG}" "${GITHUB_SHA}"
-          git push origin "refs/tags/${MAJOR_TAG}" --force
+       - name: Move major tag
+         env:
+           MAJOR_TAG: ${{ steps.release.outputs.major }}
+         run: |
+           set -euo pipefail
+           target_sha="$(git rev-parse HEAD)"
+           git tag -f "${MAJOR_TAG}" "${target_sha}"
+           git push origin "refs/tags/${MAJOR_TAG}" --force
