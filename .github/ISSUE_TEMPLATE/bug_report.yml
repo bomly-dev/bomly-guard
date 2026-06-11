@@ -1,5 +1,5 @@
 name: Bug report
-description: Report incorrect behavior in the Bomly Dependency Review Action
+description: Report incorrect behavior in the Bomly Guard
 labels: ["bug"]
 body:
   - type: markdown

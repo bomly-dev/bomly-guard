@@ -75,7 +75,7 @@ jobs:
           TAG: ${{ steps.release.outputs.tag }}
         run: |
           set -euo pipefail
-          notes="Bomly Dependency Review Action ${TAG}"
+          notes="Bomly Guard ${TAG}"
           if gh release view "${TAG}" >/dev/null 2>&1; then
             gh release edit "${TAG}" --title "${notes}" --notes "${notes}"
           else
