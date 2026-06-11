@@ -49,6 +49,23 @@ On pull requests, the action compares the PR head against the PR merge base unle
 
 For Marketplace and CI stability, pin to a major tag such as `@v1` or to an exact release tag such as `@v1.2.3`.
 
+## Releases
+
+The release workflow runs when a tag matching `v*.*.*`, such as `v1.0.0`, is pushed. It validates the action, creates or updates the matching GitHub Release, and moves the major tag, such as `v1`, to the same commit for Marketplace users.
+
+Create release tags from an up-to-date `main` branch:
+
+```bash
+git checkout main
+git pull
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+GitHub can also create a tag from the Releases UI by drafting a new release, choosing a new tag such as `v1.0.0`, targeting `main`, and publishing the release. The local `git tag` flow is preferred because the workflow owns release creation and keeps the exact release tag and major tag in sync.
+
+The release workflow also supports manual dispatch with a `tag` input. Manual dispatch is intended for rerunning release automation for an existing tag; it does not create a new tag because the workflow checks out the provided tag before publishing.
+
 ## Inputs
 
 | Input | Default | Description |
