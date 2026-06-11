@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/bomly-dependency-review-action-wordmark.svg" alt="Bomly Dependency Review Action" width="420">
+  <img src="assets/bomly-guard-wordmark.svg" alt="Bomly Guard" width="420">
 </p>
 
 <p align="center">
@@ -7,20 +7,20 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/bomly-dev/bomly-dependency-review-action/actions/workflows/ci.yml"><img src="https://github.com/bomly-dev/bomly-dependency-review-action/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
-  <a href="https://scorecard.dev/viewer/?uri=github.com/bomly-dev/bomly-dependency-review-action"><img src="https://api.scorecard.dev/projects/github.com/bomly-dev/bomly-dependency-review-action/badge" alt="OpenSSF Scorecard"></a>
-  <a href="https://github.com/bomly-dev/bomly-dependency-review-action/releases/latest"><img src="https://img.shields.io/github/v/release/bomly-dev/bomly-dependency-review-action?sort=semver" alt="Latest release"></a>
-  <a href="LICENSE"><img src="https://img.shields.io/github/license/bomly-dev/bomly-dependency-review-action" alt="License: Apache-2.0"></a>
+  <a href="https://github.com/bomly-dev/bomly-guard/actions/workflows/ci.yml"><img src="https://github.com/bomly-dev/bomly-guard/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="https://scorecard.dev/viewer/?uri=github.com/bomly-dev/bomly-guard"><img src="https://api.scorecard.dev/projects/github.com/bomly-dev/bomly-guard/badge" alt="OpenSSF Scorecard"></a>
+  <a href="https://github.com/bomly-dev/bomly-guard/releases/latest"><img src="https://img.shields.io/github/v/release/bomly-dev/bomly-guard?sort=semver" alt="Latest release"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/github/license/bomly-dev/bomly-guard" alt="License: Apache-2.0"></a>
 </p>
 
-`bomly-dependency-review-action` installs the Bomly CLI and runs `bomly diff` for pull requests, merge queues, or explicitly supplied refs.
+`bomly-guard` installs the Bomly CLI and runs `bomly diff` for pull requests, merge queues, or explicitly supplied refs.
 
 The action is a composite wrapper around the CLI. Dependency analysis and Markdown summary rendering come from `bomly diff`; the action handles GitHub Actions plumbing such as CLI installation, PR merge-base inference, outputs, job summaries, optional pull request comments, and optional SARIF upload.
 
 ## Usage
 
 ```yaml
-name: Bomly Dependency Review
+name: Bomly Guard
 
 on:
   pull_request:
@@ -39,7 +39,7 @@ jobs:
       - uses: actions/checkout@v5
         with:
           fetch-depth: 0
-      - uses: bomly-dev/bomly-dependency-review-action@v1
+      - uses: bomly-dev/bomly-guard@v1
         with:
           fail-on: high
           comment-summary-in-pr: on-failure

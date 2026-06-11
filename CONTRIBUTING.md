@@ -1,6 +1,6 @@
 # Contributing
 
-Thanks for contributing to Bomly Dependency Review Action.
+Thanks for contributing to Bomly Guard.
 
 ## Development
 

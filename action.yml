@@ -1,4 +1,4 @@
-name: "Bomly Dependency Review"
+name: "Bomly Guard"
 description: "Review dependency changes in pull requests with bomly diff"
 author: "Bomly"
 branding:
