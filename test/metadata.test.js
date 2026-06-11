@@ -28,8 +28,11 @@ test("removed aliases are absent", () => {
 });
 
 test("marketplace metadata and renamed repo references are present", () => {
-  assert.match(action, /^name: "Bomly Dependency Review"/m);
+  const legacyActionSlug = ["bomly", "dependency", "review", "action"].join("-");
+
+  assert.match(action, /^name: "Bomly Guard"/m);
   assert.match(action, /^branding:/m);
-  assert.match(readme, /bomly-dev\/bomly-dependency-review-action@v1/);
+  assert.match(readme, /bomly-dev\/bomly-guard@v1/);
+  assert.equal(readme.includes(`bomly-dev/${legacyActionSlug}@v1`), false);
   assert.equal(readme.includes("bomly-dev/bomly-review-action@v1"), false);
 });

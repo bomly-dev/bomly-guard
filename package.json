@@ -1,5 +1,5 @@
 {
-  "name": "bomly-dependency-review-action",
+  "name": "bomly-guard",
   "private": true,
   "scripts": {
     "test": "node --test test/*.test.js",

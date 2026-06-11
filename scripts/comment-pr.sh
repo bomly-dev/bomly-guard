@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-marker="<!-- bomly-dependency-review-action-comment -->"
+marker="<!-- bomly-guard-comment -->"
 body_file="${RUNNER_TEMP:-.}/bomly-comment.md"
 payload_file="${RUNNER_TEMP:-.}/bomly-comment.json"
 if [ "$(wc -c < "$COMMENT_MD")" -gt 65000 ]; then
