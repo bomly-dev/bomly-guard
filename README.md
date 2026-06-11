@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/bomly-guard-wordmark.svg" alt="Bomly Guard" width="420">
+  <img src="assets/bomly-guard-wordmark.svg" alt="Bomly Guard" width="210">
 </p>
 
 <p align="center">
