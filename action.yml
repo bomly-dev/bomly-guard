@@ -9,10 +9,6 @@ inputs:
     description: Token for repository API access.
     required: false
     default: ${{ github.token }}
-  cli-repo-token:
-    description: Token for reading Bomly CLI releases.
-    required: false
-    default: ${{ github.token }}
   version:
     description: Bomly CLI version to install, such as latest, v0.4.6, or 0.4.6.
     required: false
@@ -144,8 +140,6 @@ runs:
       shell: bash
       env:
         INPUT_VERSION: ${{ inputs.version }}
-        INPUT_CLI_REPO_TOKEN: ${{ inputs.cli-repo-token }}
-        INPUT_REPO_TOKEN: ${{ inputs.repo-token }}
       run: bash "${{ github.action_path }}/scripts/resolve-version.sh"
 
     - name: Install Bomly CLI
@@ -157,8 +151,6 @@ runs:
         TARGET_ARCH: ${{ steps.platform.outputs.arch }}
         ARCHIVE_EXT: ${{ steps.platform.outputs.ext }}
         BINARY_NAME: ${{ steps.platform.outputs.binary }}
-        INPUT_CLI_REPO_TOKEN: ${{ inputs.cli-repo-token }}
-        INPUT_REPO_TOKEN: ${{ inputs.repo-token }}
       run: bash "${{ github.action_path }}/scripts/install.sh"
 
     - name: Resolve refs

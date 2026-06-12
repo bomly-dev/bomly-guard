@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-export GH_TOKEN="${INPUT_CLI_REPO_TOKEN:-$INPUT_REPO_TOKEN}"
 archive="bomly_${VERSION}_${TARGET_OS}_${TARGET_ARCH}.${ARCHIVE_EXT}"
 work_dir="$(mktemp -d)"
 trap 'rm -rf "$work_dir"' EXIT
