@@ -22,14 +22,20 @@ The action is a composite wrapper around the CLI. Dependency analysis and Markdo
 ```yaml
 name: Bomly Guard
 
+# Run Bomly Guard when someone opens or updates a pull request.
 on:
   pull_request:
 
 permissions:
+  # Read workflow metadata before trying to upload SARIF results.
   actions: read
+  # Read repository contents so Bomly can compare dependency files.
   contents: read
+  # Needed only when comment-summary-in-pr is always or on-failure.
   pull-requests: write
+  # Lets the action update an existing PR comment through the Issues API.
   issues: write
+  # Needed only when upload-sarif is true or auto and code scanning is available.
   security-events: write
 
 jobs:
@@ -38,10 +44,14 @@ jobs:
     steps:
       - uses: actions/checkout@v5
         with:
+          # Bomly compares two git refs, so it needs enough history to find
+          # the PR merge base instead of only seeing the latest commit.
           fetch-depth: 0
       - uses: bomly-dev/bomly-guard@v1
         with:
+          # Fail the job when the PR introduces high-risk findings.
           fail-on: high
+          # Leave a PR comment only when the dependency review finds something.
           comment-summary-in-pr: on-failure
 ```
 
@@ -49,22 +59,39 @@ On pull requests, the action compares the PR head against the PR merge base unle
 
 For Marketplace and CI stability, pin to a major tag such as `@v1` or to an exact release tag such as `@v1.2.3`.
 
-## Releases
+## Viewing Results
 
-The release workflow runs when a tag matching `v*.*.*`, such as `v1.0.0`, is pushed. It validates the action, creates or updates the matching GitHub Release, and moves the major tag, such as `v1`, to the same commit for Marketplace users.
+Bomly Guard writes the same review summary in a few places so teams can choose the workflow that fits them:
 
-Create release tags from an up-to-date `main` branch:
+- The GitHub Actions job summary shows the dependency review table after each run.
+- The pull request checks panel shows whether policy findings block the PR.
+- Pull request comments can be enabled with `comment-summary-in-pr`.
+- SARIF upload can send supported findings to GitHub code scanning.
+- JSON outputs are available for follow-up jobs that need to inspect the dependency diff.
 
-```bash
-git checkout main
-git pull
-git tag v1.0.0
-git push origin v1.0.0
-```
+**Pull request check result**
 
-GitHub can also create a tag from the Releases UI by drafting a new release, choosing a new tag such as `v1.0.0`, targeting `main`, and publishing the release. The local `git tag` flow is preferred because the workflow owns release creation and keeps the exact release tag and major tag in sync.
+![GitHub pull request checks panel showing Bomly Guard as a failing check when blocking policy findings are introduced.](assets/screenshots/check-status.png)
 
-The release workflow also supports manual dispatch with a `tag` input. Manual dispatch is intended for rerunning release automation for an existing tag; it does not create a new tag because the workflow checks out the provided tag before publishing.
+Bomly Guard reports the policy result as a normal GitHub check, so teams can make dependency policy part of branch protection.
+
+**Pull request comment summary**
+
+![Bomly Guard pull request comment showing the diff summary and introduced, persisted, and resolved finding counts.](assets/screenshots/pr-comment-summary.png)
+
+When `comment-summary-in-pr` is enabled, reviewers can see the dependency review without opening the Actions run.
+
+**Dependency changes**
+
+![Bomly dependency changes table showing added and changed dependencies with package URLs.](assets/screenshots/dependency-changes.png)
+
+The dependency table separates added, changed, and removed packages, then includes package URLs so each change is traceable.
+
+**Policy findings**
+
+![Bomly policy findings table showing an introduced critical vulnerability and a resolved vulnerability.](assets/screenshots/policy-findings.png)
+
+Policy findings distinguish new issues from resolved ones, which helps reviewers focus on what the pull request actually introduced.
 
 ## Inputs
 
@@ -78,28 +105,28 @@ The release workflow also supports manual dispatch with a `tag` input. Manual di
 | `head-ref` | inferred | Head git ref to compare. Pull requests use the PR head SHA when this is not set. |
 | `config-file` | | Local Bomly config path or `owner/repo/path@ref` external config reference. |
 | `external-repo-token` | `repo-token` | Token for private external config repositories. |
-| `enrich` | `true` | Passes `--enrich` when `true`. |
-| `audit` | `true` | Passes `--audit` when `true`; SARIF side output is generated only when audit is enabled. |
-| `analyze` | `false` | Passes `--analyze` when `true` for reachability analysis. |
-| `fail-on` | | Comma-separated values passed as repeated `--fail-on` constraints. |
-| `allow-licenses` | | Comma-separated SPDX values passed as repeated `--allow-license`. |
-| `deny-licenses` | | Comma-separated SPDX values passed as repeated `--deny-license`. |
-| `license-exempt-packages` | | Comma-separated package URLs passed as repeated `--license-exempt-package`. |
-| `allow-vulnerability-ids` | | Comma-separated vulnerability IDs passed as repeated `--allow-vulnerability-id`. |
-| `deny-packages` | | Comma-separated package URLs passed as repeated `--deny-package`. |
-| `deny-groups` | | Comma-separated package URL namespaces passed as repeated `--deny-group`. |
-| `protected-packages` | | Comma-separated package names passed as repeated `--protected-package`. |
-| `typosquat-threshold` | | Value passed to `--typosquat-threshold`. |
-| `typosquat-mode` | | Value passed to `--typosquat-mode`; Bomly accepts `warn` or `fail`. |
-| `warn-only` | `false` | Passes `--warn-only` when `true`. |
-| `ecosystems` | | Selector string passed to `--ecosystems`. |
-| `detectors` | | Selector string passed to `--detectors`. |
-| `matchers` | | Selector string passed to `--matchers`. |
-| `auditors` | | Selector string passed to `--auditors`. |
-| `analyzers` | | Selector string passed to `--analyzers`. |
-| `install-first` | `false` | Passes `--install-first` when `true`. |
-| `install-args` | | Comma-separated values passed as repeated `--install-arg`. |
-| `comment-summary-in-pr` | `never` | Pull request comment mode: `never`, `always`, or `on-failure`. |
+| `enrich` | `true` | Look up additional package metadata, such as vulnerability and license details, before evaluating policy. |
+| `audit` | `true` | Evaluate vulnerability and policy findings. SARIF output is generated only when audit is enabled. |
+| `analyze` | `false` | Run reachability analysis for supported ecosystems so findings can include whether vulnerable code appears reachable. |
+| `fail-on` | | Comma-separated finding severities or policy categories that should fail the job. |
+| `allow-licenses` | | Comma-separated SPDX license IDs that are allowed by policy. |
+| `deny-licenses` | | Comma-separated SPDX license IDs that should be blocked by policy. |
+| `license-exempt-packages` | | Comma-separated package URLs that should be ignored by license policy. |
+| `allow-vulnerability-ids` | | Comma-separated vulnerability IDs that should not fail the review. |
+| `deny-packages` | | Comma-separated package URLs that should be blocked when introduced or changed. |
+| `deny-groups` | | Comma-separated package URL namespaces, such as a package scope or group, that should be blocked. |
+| `protected-packages` | | Comma-separated package names Bomly should watch for typosquatting lookalikes. |
+| `typosquat-threshold` | | Similarity threshold for suspicious package-name matches. Lower values are stricter. |
+| `typosquat-mode` | | How typosquatting findings affect the run: `warn` reports them, and `fail` blocks the job. |
+| `warn-only` | `false` | Report failing findings as warnings without failing the GitHub Actions job. |
+| `ecosystems` | | Limit dependency detection to selected ecosystems. Leave empty to let Bomly detect supported ecosystems automatically. |
+| `detectors` | | Limit which dependency-file detectors run. Useful for advanced workflows that need only specific lockfile or manifest detectors. |
+| `matchers` | | Limit which dependency matchers run when Bomly compares packages across the base and head refs. |
+| `auditors` | | Limit which policy or vulnerability auditors run during review. |
+| `analyzers` | | Limit which reachability analyzers run when `analyze` is enabled. |
+| `install-first` | `false` | Run detector-specific dependency installation before resolving dependency graphs. |
+| `install-args` | | Comma-separated arguments to pass to detector-specific install steps when `install-first` is enabled. |
+| `comment-summary-in-pr` | `never` | Pull request comment mode: `never`, `always`, or `on-failure`. Requires `pull-requests: write` and `issues: write`. |
 | `upload-sarif` | `auto` | SARIF upload mode: `auto`, `true`, or `false`. `auto` skips upload cleanly when code scanning is unavailable. |
 
 The action always owns `bomly diff --format json` and its Markdown/SARIF side outputs so GitHub outputs, job summaries, PR comments, and code scanning upload remain stable. The CLI flags `--format`, `--json`, `--output`, and `--interactive` are intentionally not action inputs.
@@ -120,6 +147,33 @@ SARIF upload uses `github/codeql-action/upload-sarif` when supported. GitHub req
 
 ## Configuration
 
-`config-file` accepts either a local path or an external config reference in the form `owner/repo/path@ref`. External config reads use `external-repo-token` when set, otherwise `repo-token`.
+For small policies, put the options directly in your workflow:
+
+```yaml
+- uses: bomly-dev/bomly-guard@v1
+  with:
+    fail-on: high,critical
+    deny-licenses: GPL-3.0-only,AGPL-3.0-only
+    comment-summary-in-pr: on-failure
+```
+
+For longer policies, or for policy shared across multiple repositories, use `config-file`:
+
+```yaml
+- uses: bomly-dev/bomly-guard@v1
+  with:
+    config-file: .github/bomly.yml
+```
+
+`config-file` can point to a local file in the checked-out repository, or to a file in another repository with the format `owner/repo/path@ref`:
+
+```yaml
+- uses: bomly-dev/bomly-guard@v1
+  with:
+    config-file: bomly-dev/security-policy/bomly.yml@main
+    external-repo-token: ${{ secrets.BOMLY_POLICY_TOKEN }}
+```
+
+Use `external-repo-token` when the external configuration repository is private. If it is not set, Bomly Guard uses `repo-token`.
 
 For the full Bomly CLI configuration reference, see the [Bomly CLI docs](https://github.com/bomly-dev/bomly-cli).
