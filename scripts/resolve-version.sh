@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-export GH_TOKEN="${INPUT_CLI_REPO_TOKEN:-$INPUT_REPO_TOKEN}"
 version="$INPUT_VERSION"
 if [ "$version" = "latest" ]; then
   echo "Resolving latest Bomly CLI release"

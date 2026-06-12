@@ -72,7 +72,6 @@ The release workflow also supports manual dispatch with a `tag` input. Manual di
 | --- | --- | --- |
 | `version` | `latest` | Bomly CLI release to install, such as `latest`, `v0.4.6`, or `0.4.6`. |
 | `repo-token` | `${{ github.token }}` | Token for current-repository API access, pull request comments, and repository security checks. |
-| `cli-repo-token` | `${{ github.token }}` | Token for reading Bomly CLI releases. |
 | `log-level` | `verbose` | Bomly CLI log level: `quiet`, `verbose`, or `debug`. |
 | `base-ref` | inferred | Base git ref to compare. Pull requests use the PR merge base when this is not set. |
 | `head-ref` | inferred | Head git ref to compare. Pull requests use the PR head SHA when this is not set. |
