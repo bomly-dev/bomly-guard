@@ -2,6 +2,12 @@
 
 Thanks for contributing to Bomly Guard.
 
+By participating in this project you agree to abide by the Bomly
+[Code of Conduct](https://github.com/bomly-dev/.github/blob/main/CODE_OF_CONDUCT.md).
+To report a security vulnerability, follow the
+[Security Policy](https://github.com/bomly-dev/.github/blob/main/SECURITY.md)
+rather than opening a public issue.
+
 ## Development
 
 This repository contains a composite GitHub Action implemented with shell and Node.js scripts.
