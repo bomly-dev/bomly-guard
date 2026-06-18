@@ -12,13 +12,15 @@ fi
 work_dir="$(mktemp -d)"
 trap 'rm -rf "$work_dir"' EXIT
 
-release_assets="$(gh release view "$VERSION" --repo bomly-dev/bomly-cli --json assets -q '.assets[].name')"
+base_url="https://github.com/bomly-dev/bomly-cli/releases/download/${VERSION}"
 archive=""
 for candidate in "${archive_candidates[@]}"; do
-  if grep -Fxq "$candidate" <<<"$release_assets"; then
+  echo "Downloading ${candidate} from bomly-dev/bomly-cli ${VERSION}"
+  if curl -fsSL "${base_url}/${candidate}" -o "${work_dir}/${candidate}"; then
     archive="$candidate"
     break
   fi
+  rm -f "${work_dir:?}/${candidate}"
 done
 if [ -z "$archive" ]; then
   printf -v candidate_list "'%s', " "${archive_candidates[@]}"
@@ -27,13 +29,7 @@ if [ -z "$archive" ]; then
   exit 1
 fi
 
-echo "Downloading ${archive} from bomly-dev/bomly-cli ${VERSION}"
-gh release download "$VERSION" \
-  --repo bomly-dev/bomly-cli \
-  --pattern "$archive" \
-  --pattern SHA256SUMS \
-  --dir "$work_dir" \
-  --clobber
+curl -fsSL "${base_url}/SHA256SUMS" -o "${work_dir}/SHA256SUMS"
 
 expected_hash="$(awk -v archive="$archive" '{name=$NF; sub(/^dist\//, "", name); if (name == archive) {print $1; exit}}' "${work_dir}/SHA256SUMS")"
 if [ -z "$expected_hash" ]; then

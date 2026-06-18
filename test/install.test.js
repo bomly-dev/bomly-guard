@@ -39,40 +39,42 @@ function runInstall({ version, assets, checksumName }) {
   fs.writeFileSync(path.join(releaseDir, "SHA256SUMS"), `${hash}  dist/${checksumName}\n`);
 
   fs.writeFileSync(
-    path.join(binDir, "gh"),
+    path.join(binDir, "curl"),
     `#!/usr/bin/env bash
 set -euo pipefail
-if [ "$1" = "release" ] && [ "$2" = "view" ]; then
-  printf '%s\\n' "$BOMLY_TEST_ASSETS"
+out=""
+url=""
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    -o)
+      out="$2"
+      shift 2
+      ;;
+    -*)
+      shift
+      ;;
+    *)
+      url="$1"
+      shift
+      ;;
+  esac
+done
+asset="$\{url##*/}"
+if [ -n "$out" ]; then
+  if [ ! -f "$BOMLY_TEST_RELEASE_DIR/$asset" ]; then
+    exit 22
+  fi
+  cp "$BOMLY_TEST_RELEASE_DIR/$asset" "$out"
   exit 0
 fi
-if [ "$1" = "release" ] && [ "$2" = "download" ]; then
-  dir=""
-  patterns=()
-  while [ "$#" -gt 0 ]; do
-    case "$1" in
-      --dir)
-        dir="$2"
-        shift 2
-        ;;
-      --pattern)
-        patterns+=("$2")
-        shift 2
-        ;;
-      *)
-        shift
-        ;;
-    esac
-  done
-  for pattern in "$\{patterns[@]}"; do
-    cp "$BOMLY_TEST_RELEASE_DIR/$pattern" "$dir/"
-  done
+if [ "$url" = "https://api.github.com/repos/bomly-dev/bomly-cli/releases/latest" ]; then
+  printf '{"tag_name":"%s"}\\n' "$BOMLY_TEST_LATEST_VERSION"
   exit 0
 fi
-exit 1
+exit 22
 `,
   );
-  fs.chmodSync(path.join(binDir, "gh"), 0o755);
+  fs.chmodSync(path.join(binDir, "curl"), 0o755);
 
   const result = spawnSync("bash", [path.join(repoRoot, "scripts/install.sh")], {
     cwd: repoRoot,
@@ -87,8 +89,8 @@ exit 1
       GITHUB_OUTPUT: path.join(dir, "github-output"),
       GITHUB_PATH: path.join(dir, "github-path"),
       RUNNER_TOOL_CACHE: path.join(dir, "tool-cache"),
-      BOMLY_TEST_ASSETS: assets.join("\n"),
       BOMLY_TEST_RELEASE_DIR: releaseDir,
+      BOMLY_TEST_LATEST_VERSION: "v0.14.6",
     },
     encoding: "utf8",
   });
@@ -102,6 +104,48 @@ exit 1
   return {
     output: result.stdout,
     installDir: fs.readFileSync(path.join(dir, "github-path"), "utf8").trim(),
+  };
+}
+
+function runResolveVersion(version) {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "bomly-resolve-test-"));
+  const binDir = path.join(dir, "bin");
+  fs.mkdirSync(binDir);
+
+  fs.writeFileSync(
+    path.join(binDir, "curl"),
+    `#!/usr/bin/env bash
+set -euo pipefail
+url="$\{@: -1}"
+if [ "$url" = "https://api.github.com/repos/bomly-dev/bomly-cli/releases/latest" ]; then
+  printf '{"tag_name":"v0.14.6"}\\n'
+  exit 0
+fi
+exit 22
+`,
+  );
+  fs.chmodSync(path.join(binDir, "curl"), 0o755);
+
+  const result = spawnSync("bash", [path.join(repoRoot, "scripts/resolve-version.sh")], {
+    cwd: repoRoot,
+    env: {
+      ...process.env,
+      PATH: `${binDir}${path.delimiter}${process.env.PATH}`,
+      INPUT_VERSION: version,
+      GITHUB_OUTPUT: path.join(dir, "github-output"),
+    },
+    encoding: "utf8",
+  });
+
+  if (result.status !== 0) {
+    throw new Error(
+      `resolve-version.sh failed with ${result.status}\nstdout:\n${result.stdout}\nstderr:\n${result.stderr}`,
+    );
+  }
+
+  return {
+    output: result.stdout,
+    githubOutput: fs.readFileSync(path.join(dir, "github-output"), "utf8"),
   };
 }
 
@@ -127,4 +171,12 @@ test("still installs older releases whose archive names include the tag prefix",
 
   assert.match(result.output, new RegExp(`Downloading ${archive}`));
   assert.equal(fs.existsSync(path.join(result.installDir, "bomly")), true);
+});
+
+test("resolves latest release without requiring GitHub CLI auth", () => {
+  const result = runResolveVersion("latest");
+
+  assert.match(result.output, /Resolving latest Bomly CLI release/);
+  assert.match(result.output, /Using Bomly CLI v0.14.6/);
+  assert.equal(result.githubOutput, "version=v0.14.6\n");
 });
