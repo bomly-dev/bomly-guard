@@ -75,11 +75,18 @@ jobs:
           TAG: ${{ steps.release.outputs.tag }}
         run: |
           set -euo pipefail
-          notes="Bomly Guard ${TAG}"
+          title="Bomly Guard ${TAG}"
+          target_sha="$(git rev-parse HEAD)"
+          notes_file="$(mktemp)"
+          gh api "repos/${GITHUB_REPOSITORY}/releases/generate-notes" \
+            --method POST \
+            --field tag_name="${TAG}" \
+            --field target_commitish="${target_sha}" \
+            --jq .body > "${notes_file}"
           if gh release view "${TAG}" >/dev/null 2>&1; then
-            gh release edit "${TAG}" --title "${notes}" --notes "${notes}"
+            gh release edit "${TAG}" --title "${title}" --notes-file "${notes_file}"
           else
-            gh release create "${TAG}" --title "${notes}" --notes "${notes}"
+            gh release create "${TAG}" --title "${title}" --notes-file "${notes_file}"
           fi
 
       - name: Move major tag
