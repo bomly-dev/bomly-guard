@@ -1,9 +1,31 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-archive="bomly_${VERSION}_${TARGET_OS}_${TARGET_ARCH}.${ARCHIVE_EXT}"
+asset_version="${VERSION#v}"
+archive_candidates=(
+  "bomly_${asset_version}_${TARGET_OS}_${TARGET_ARCH}.${ARCHIVE_EXT}"
+)
+if [ "$asset_version" != "$VERSION" ]; then
+  archive_candidates+=("bomly_${VERSION}_${TARGET_OS}_${TARGET_ARCH}.${ARCHIVE_EXT}")
+fi
+
 work_dir="$(mktemp -d)"
 trap 'rm -rf "$work_dir"' EXIT
+
+release_assets="$(gh release view "$VERSION" --repo bomly-dev/bomly-cli --json assets -q '.assets[].name')"
+archive=""
+for candidate in "${archive_candidates[@]}"; do
+  if grep -Fxq "$candidate" <<<"$release_assets"; then
+    archive="$candidate"
+    break
+  fi
+done
+if [ -z "$archive" ]; then
+  printf -v candidate_list "'%s', " "${archive_candidates[@]}"
+  candidate_list="${candidate_list%, }"
+  echo "::error::No Bomly CLI archive found for ${TARGET_OS}/${TARGET_ARCH}. Looked for ${candidate_list} in ${VERSION}."
+  exit 1
+fi
 
 echo "Downloading ${archive} from bomly-dev/bomly-cli ${VERSION}"
 gh release download "$VERSION" \
