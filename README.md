@@ -59,6 +59,14 @@ On pull requests, the action compares the PR head against the PR merge base unle
 
 For Marketplace and CI stability, pin to a major tag such as `@v1` or to an exact release tag such as `@v1.2.3`.
 
+Bomly Guard downloads the public Bomly CLI release without a token by default. If your workflow hits GitHub public rate limits while resolving or downloading the CLI release, pass an optional token:
+
+```yaml
+- uses: bomly-dev/bomly-guard@v1
+  with:
+    cli-token: ${{ github.token }}
+```
+
 ## Viewing Results
 
 Bomly Guard writes the same review summary in a few places so teams can choose the workflow that fits them:
@@ -98,6 +106,7 @@ Policy findings distinguish new issues from resolved ones, which helps reviewers
 | Input | Default | Description |
 | --- | --- | --- |
 | `version` | `latest` | Bomly CLI release to install, such as `latest`, `v0.4.6`, or `0.4.6`. |
+| `cli-token` | | Optional token for Bomly CLI release API and download requests, useful if public GitHub rate limits are hit. |
 | `repo-token` | `${{ github.token }}` | Token for current-repository API access, pull request comments, and repository security checks. |
 | `log-level` | `verbose` | Bomly CLI log level: `quiet`, `verbose`, or `debug`. |
 | `base-ref` | inferred | Base git ref to compare. Pull requests use the PR merge base when this is not set. |

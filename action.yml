@@ -13,6 +13,9 @@ inputs:
     description: Bomly CLI version to install, such as latest, v0.4.6, or 0.4.6.
     required: false
     default: latest
+  cli-token:
+    description: Optional token for Bomly CLI release API and download requests, useful if public GitHub rate limits are hit.
+    required: false
   log-level:
     description: Bomly CLI log level, one of quiet, verbose, or debug.
     required: false
@@ -140,6 +143,7 @@ runs:
       shell: bash
       env:
         INPUT_VERSION: ${{ inputs.version }}
+        INPUT_CLI_TOKEN: ${{ inputs.cli-token }}
       run: bash "${{ github.action_path }}/scripts/resolve-version.sh"
 
     - name: Install Bomly CLI
@@ -151,6 +155,7 @@ runs:
         TARGET_ARCH: ${{ steps.platform.outputs.arch }}
         ARCHIVE_EXT: ${{ steps.platform.outputs.ext }}
         BINARY_NAME: ${{ steps.platform.outputs.binary }}
+        INPUT_CLI_TOKEN: ${{ inputs.cli-token }}
       run: bash "${{ github.action_path }}/scripts/install.sh"
 
     - name: Resolve refs
