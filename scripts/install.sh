@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+curl_args=(-fsSL)
+if [ -n "${INPUT_CLI_TOKEN:-}" ]; then
+  curl_args+=(-H "Authorization: Bearer ${INPUT_CLI_TOKEN}")
+fi
+
 asset_version="${VERSION#v}"
 archive_candidates=(
   "bomly_${asset_version}_${TARGET_OS}_${TARGET_ARCH}.${ARCHIVE_EXT}"
@@ -16,7 +21,7 @@ base_url="https://github.com/bomly-dev/bomly-cli/releases/download/${VERSION}"
 archive=""
 for candidate in "${archive_candidates[@]}"; do
   echo "Downloading ${candidate} from bomly-dev/bomly-cli ${VERSION}"
-  if curl -fsSL "${base_url}/${candidate}" -o "${work_dir}/${candidate}"; then
+  if curl "${curl_args[@]}" "${base_url}/${candidate}" -o "${work_dir}/${candidate}"; then
     archive="$candidate"
     break
   fi
@@ -29,7 +34,7 @@ if [ -z "$archive" ]; then
   exit 1
 fi
 
-curl -fsSL "${base_url}/SHA256SUMS" -o "${work_dir}/SHA256SUMS"
+curl "${curl_args[@]}" "${base_url}/SHA256SUMS" -o "${work_dir}/SHA256SUMS"
 
 expected_hash="$(awk -v archive="$archive" '{name=$NF; sub(/^dist\//, "", name); if (name == archive) {print $1; exit}}' "${work_dir}/SHA256SUMS")"
 if [ -z "$expected_hash" ]; then

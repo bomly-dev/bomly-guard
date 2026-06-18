@@ -1,10 +1,15 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+curl_args=(-fsSL)
+if [ -n "${INPUT_CLI_TOKEN:-}" ]; then
+  curl_args+=(-H "Authorization: Bearer ${INPUT_CLI_TOKEN}")
+fi
+
 version="$INPUT_VERSION"
 if [ "$version" = "latest" ]; then
   echo "Resolving latest Bomly CLI release"
-  release_json="$(curl -fsSL https://api.github.com/repos/bomly-dev/bomly-cli/releases/latest)"
+  release_json="$(curl "${curl_args[@]}" https://api.github.com/repos/bomly-dev/bomly-cli/releases/latest)"
   version="$(printf '%s\n' "$release_json" | sed -n 's/.*"tag_name"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' | head -n 1)"
   if [ -z "$version" ]; then
     echo "::error::Unable to resolve latest Bomly CLI release"
