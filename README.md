@@ -149,8 +149,6 @@ steps:
       fail-on: high
 ```
 
-Automatic package-manager setup may be added later as an opt-in feature, but it needs explicit version inputs and clear cache, network, and failure semantics. For now, workflows own toolchain versions so teams can pin them the same way they pin their test and build environments.
-
 ## Viewing Results
 
 Bomly Guard writes the same review summary in a few places so teams can choose the workflow that fits them:
