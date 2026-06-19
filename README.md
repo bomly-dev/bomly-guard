@@ -67,6 +67,90 @@ Bomly Guard downloads the public Bomly CLI release without a token by default. I
     cli-token: ${{ github.token }}
 ```
 
+## Package Manager Setup
+
+Bomly Guard does not install project package managers for you. The action installs the Bomly CLI, then runs `bomly diff`; package-manager tools such as npm, pnpm, Yarn, Dart pub, SwiftPM, SBT, Composer, Bundler, and Conan should be installed by earlier workflow steps when your repository needs them.
+
+The `install-first` input is passed to `bomly diff --install-first`. It asks CLI detectors that support install-first behavior to install project dependencies before resolving graphs. It does not install the package-manager binary itself.
+
+Many repositories can be reviewed from committed lockfiles alone. Some ecosystems can produce richer dependency graphs when their build tool is available, and current build-tool-backed detectors include Dart pub, SwiftPM, and SBT. Any detector may also need its package manager when lockfile parsing is not enough or when `install-first` is enabled.
+
+Use the normal setup action for your ecosystem before Bomly Guard:
+
+```yaml
+steps:
+  - uses: actions/checkout@v5
+    with:
+      fetch-depth: 0
+
+  # Node.js, npm, pnpm, and Yarn
+  - uses: actions/setup-node@v6
+    with:
+      node-version: 22
+      cache: npm
+  - run: corepack enable
+
+  # Java, Maven, Gradle, Scala, and SBT
+  - uses: actions/setup-java@v5
+    with:
+      distribution: temurin
+      java-version: 21
+
+  # Go modules
+  - uses: actions/setup-go@v6
+    with:
+      go-version: stable
+
+  # Python, pip, pipenv, poetry, and uv
+  - uses: actions/setup-python@v6
+    with:
+      python-version: "3.12"
+
+  # Ruby Bundler
+  - uses: ruby/setup-ruby@v1
+    with:
+      ruby-version: "3.3"
+
+  # .NET NuGet
+  - uses: actions/setup-dotnet@v5
+    with:
+      dotnet-version: "9.0.x"
+
+  # Rust Cargo
+  - uses: dtolnay/rust-toolchain@stable
+
+  # Dart pub
+  - uses: dart-lang/setup-dart@v1
+
+  # PHP Composer
+  - uses: shivammathur/setup-php@v2
+    with:
+      php-version: "8.3"
+      tools: composer
+
+  # Elixir Mix
+  - uses: erlef/setup-beam@v1
+    with:
+      otp-version: "27"
+      elixir-version: "1.17"
+
+  # C++ Conan
+  - uses: actions/setup-python@v6
+    with:
+      python-version: "3.12"
+  - run: python -m pip install conan
+
+  # SwiftPM and CocoaPods usually belong on a macOS runner.
+  - run: swift --version
+  - run: gem install cocoapods
+
+  - uses: bomly-dev/bomly-guard@v1
+    with:
+      fail-on: high
+```
+
+Automatic package-manager setup may be added later as an opt-in feature, but it needs explicit version inputs and clear cache, network, and failure semantics. For now, workflows own toolchain versions so teams can pin them the same way they pin their test and build environments.
+
 ## Viewing Results
 
 Bomly Guard writes the same review summary in a few places so teams can choose the workflow that fits them:
@@ -132,7 +216,7 @@ Policy findings distinguish new issues from resolved ones, which helps reviewers
 | `matchers` | | Limit which dependency matchers run when Bomly compares packages across the base and head refs. |
 | `auditors` | | Limit which policy or vulnerability auditors run during review. |
 | `analyzers` | | Limit which reachability analyzers run when `analyze` is enabled. |
-| `install-first` | `false` | Run detector-specific dependency installation before resolving dependency graphs. |
+| `install-first` | `false` | Ask CLI detectors that support install-first behavior to install project dependencies before resolving graphs. This does not install package-manager binaries. |
 | `install-args` | | Comma-separated arguments to pass to detector-specific install steps when `install-first` is enabled. |
 | `comment-summary-in-pr` | `never` | Pull request comment mode: `never`, `always`, or `on-failure`. Requires `pull-requests: write` and `issues: write`. |
 | `upload-sarif` | `auto` | SARIF upload mode: `auto`, `true`, or `false`. `auto` skips upload cleanly when code scanning is unavailable. |
