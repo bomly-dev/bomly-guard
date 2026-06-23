@@ -4,6 +4,6 @@
   "scripts": {
     "test": "node --test test/*.test.js",
     "lint:shell": "bash -n scripts/*.sh",
-    "lint:js": "node --check scripts/*.js test/*.test.js"
+    "lint:js": "node --check scripts/*.js .github/canary/*.js test/*.test.js"
   }
 }

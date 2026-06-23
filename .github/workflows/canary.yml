@@ -1,0 +1,49 @@
+name: Guard Canary
+
+on:
+  schedule:
+    - cron: "17 9 * * *"
+  workflow_dispatch:
+    inputs:
+      rerun:
+        description: Rerun selected example PR workflows before validating.
+        required: false
+        default: "true"
+        type: choice
+        options:
+          - "true"
+          - "false"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: guard-canary-${{ github.event_name }}
+  cancel-in-progress: false
+
+jobs:
+  canary:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+
+      - name: Run Guard canary
+        env:
+          GH_TOKEN: ${{ secrets.BOMLY_CANARY_TOKEN }}
+          CANARY_RERUN: ${{ github.event.inputs.rerun || 'true' }}
+        run: node .github/canary/run-canary.js
+
+      - name: Upload canary results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: guard-canary-results
+          path: canary-results.json
+          retention-days: 14

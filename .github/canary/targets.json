@@ -1,0 +1,70 @@
+{
+  "targets": [
+    {
+      "name": "npm vulnerable lockfile",
+      "repo": "bomly-dev/example-javascript-npm",
+      "pr": 4,
+      "workflow": "bomly-guard.yml",
+      "expectedConclusion": "failure",
+      "expectedFindingCategories": ["vulnerability"],
+      "requireComment": true,
+      "requireSarif": true,
+      "requireChangedLineAlert": true
+    },
+    {
+      "name": "pnpm vulnerable addition",
+      "repo": "bomly-dev/example-javascript-pnpm",
+      "pr": 4,
+      "workflow": "bomly-guard.yml",
+      "expectedConclusion": "failure",
+      "expectedFindingCategories": ["vulnerability"],
+      "requireComment": true,
+      "requireSarif": true,
+      "requireChangedLineAlert": true
+    },
+    {
+      "name": "gradle vulnerable upgrade",
+      "repo": "bomly-dev/example-java-gradle",
+      "pr": 4,
+      "workflow": "bomly-guard.yml",
+      "expectedConclusion": "failure",
+      "expectedFindingCategories": ["vulnerability", "license"],
+      "requireComment": true,
+      "requireSarif": true,
+      "requireChangedLineAlert": true
+    },
+    {
+      "name": "dart vulnerable downgrade",
+      "repo": "bomly-dev/example-dart-pub",
+      "pr": 4,
+      "workflow": "bomly-guard.yml",
+      "expectedConclusion": "failure",
+      "expectedFindingCategories": ["vulnerability", "license"],
+      "requireComment": true,
+      "requireSarif": true,
+      "requireChangedLineAlert": true
+    },
+    {
+      "name": "composer license diversity",
+      "repo": "bomly-dev/example-php-composer",
+      "pr": 4,
+      "workflow": "bomly-guard.yml",
+      "expectedConclusion": "success",
+      "expectedFindingCategories": ["license"],
+      "requireComment": true,
+      "requireSarif": true,
+      "requireChangedLineAlert": true
+    },
+    {
+      "name": "swiftpm build-tool license signal",
+      "repo": "bomly-dev/example-swift-swiftpm",
+      "pr": 4,
+      "workflow": "bomly-guard.yml",
+      "expectedConclusion": "success",
+      "expectedFindingCategories": ["license"],
+      "requireComment": true,
+      "requireSarif": true,
+      "requireChangedLineAlert": true
+    }
+  ]
+}
