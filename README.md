@@ -235,6 +235,13 @@ The action always owns `bomly diff --format json` and its Markdown/SARIF side ou
 
 SARIF upload uses `github/codeql-action/upload-sarif` when supported. GitHub requires `security-events: write`, and private repositories also require `actions: read` plus GitHub Code Security enabled. The default `upload-sarif: auto` skips upload cleanly when those requirements are not met; Bomly policy evaluation still controls the final action result.
 
+### How code scanning shows Bomly alerts
+
+The inline annotations you see on a pull request come from GitHub code scanning ingesting the uploaded SARIF — Bomly Guard does not post its own inline review comments. Two GitHub behaviors are worth knowing:
+
+- **Severity** renders as Low / Medium / High / Critical for vulnerabilities, because the SARIF carries a numeric `security-severity`. License and other non-CVSS findings render with their level (Error / Warning / Note) instead.
+- **Annotations only appear in the "Files changed" tab for alerts on lines the PR actually changed.** A dependency advisory is anchored to where the package is declared in the lockfile/manifest, which is often *not* the line the PR edited (for example, a Maven version property on one line versus the `<dependency>` element on another). When they differ, GitHub may report **"No new alerts in code changed by this pull request"** even though the alert is real — it remains visible in the repository **Security › Code scanning** tab, and in the Bomly job summary and PR comment. Use those surfaces for the full picture.
+
 ## Configuration
 
 For small policies, put the options directly in your workflow:
