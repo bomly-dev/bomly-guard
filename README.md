@@ -165,6 +165,8 @@ Bomly Guard writes the same review summary in a few places so teams can choose t
 
 Bomly Guard reports the policy result as a normal GitHub check, so teams can make dependency policy part of branch protection.
 
+When there is nothing applicable to evaluate — for example an `ecosystems`/`detectors` filter that doesn't match anything in the repository — Bomly Guard passes the check with a neutral notice ("no applicable manifests were found") rather than failing. Genuine errors (a malformed manifest, a failed checkout) still fail the check.
+
 **Pull request comment summary**
 
 ![Bomly Guard pull request comment showing the diff summary and introduced, persisted, and resolved finding counts.](assets/screenshots/pr-comment-summary.png)

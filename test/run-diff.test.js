@@ -143,3 +143,62 @@ test("audit false skips audit flag and sarif output", () => {
   assert.equal(args.some((arg) => arg.startsWith("sarif=")), false);
   assert.equal(args.includes("--enrich"), false);
 });
+
+// Runs run-diff.sh against a bomly stub that exits with `exitCode` and writes
+// nothing (mirroring the CLI's "nothing to evaluate" path, where it errors
+// before producing any output). Returns the run result plus the parsed
+// GITHUB_OUTPUT key/value lines and the temp dir.
+function runDiffWithExit(exitCode, extraEnv = {}) {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "bomly-action-test-"));
+  const binDir = path.join(dir, "bin");
+  fs.mkdirSync(binDir);
+  const outputFile = path.join(dir, "github-output");
+  const stub = path.join(binDir, "bomly");
+  fs.writeFileSync(stub, `#!/usr/bin/env bash\nexit ${exitCode}\n`);
+  fs.chmodSync(stub, 0o755);
+
+  const result = spawnSync("bash", [path.join(repoRoot, "scripts/run-diff.sh")], {
+    cwd: repoRoot,
+    env: {
+      ...process.env,
+      PATH: `${binDir}${path.delimiter}${process.env.PATH}`,
+      GITHUB_OUTPUT: outputFile,
+      RUNNER_TEMP: dir,
+      BASE_REF: "base",
+      HEAD_REF: "head",
+      INPUT_LOG_LEVEL: "quiet",
+      INPUT_COMMENT_SUMMARY_IN_PR: "never",
+      INPUT_AUDIT: "true",
+      ...extraEnv,
+    },
+    encoding: "utf8",
+  });
+
+  const outputs = {};
+  if (fs.existsSync(outputFile)) {
+    for (const line of fs.readFileSync(outputFile, "utf8").split(/\r?\n/)) {
+      const eq = line.indexOf("=");
+      if (eq > 0) outputs[line.slice(0, eq)] = line.slice(eq + 1);
+    }
+  }
+  return { result, outputs, dir };
+}
+
+test("exit 5 (nothing to evaluate) passes with a neutral summary", () => {
+  const { result, outputs } = runDiffWithExit(5, { INPUT_ECOSYSTEMS: "maven" });
+
+  assert.equal(result.status, 0, `expected run-diff.sh to exit 0\nstderr:\n${result.stderr}`);
+  assert.equal(outputs["nothing-to-evaluate"], "true");
+  assert.equal(outputs["exit-code"], "0");
+  assert.match(result.stdout, /::notice::/);
+  assert.match(result.stdout, /ecosystem\(s\): maven/);
+
+  const summary = fs.readFileSync(outputs["summary-md"], "utf8");
+  assert.match(summary, /No applicable manifests were found to evaluate/);
+  assert.equal(fs.readFileSync(outputs["diff-json"], "utf8"), "{}");
+});
+
+test("genuine resolution failure (exit 3) still fails the step", () => {
+  const { result } = runDiffWithExit(3);
+  assert.equal(result.status, 3, "exit 3 must continue to fail Guard");
+});
