@@ -95,6 +95,29 @@ set +e
 bomly "${args[@]}" > "$diff_json"
 exit_code=$?
 set -e
+
+# Exit 5 = "nothing to evaluate": the CLI found no subprojects/manifests to
+# scan (commonly an ecosystems/detectors filter that doesn't apply to this
+# repo). That's a benign no-op, not a failure, so Guard passes. The CLI errors
+# before producing any output on this path, so synthesize an empty diff and a
+# neutral summary that the downstream steps can consume unchanged (empty
+# findings, no SARIF file -> upload auto-skips).
+if [ "$exit_code" -eq 5 ]; then
+  eco_note=""
+  [ -n "${INPUT_ECOSYSTEMS:-}" ] && eco_note=" for ecosystem(s): ${INPUT_ECOSYSTEMS}"
+  echo "::notice::Bomly found no applicable manifests to evaluate${eco_note}; nothing to scan."
+  printf '{}' > "$diff_json"
+  printf '# Bomly Diff Summary\n\nℹ️ No applicable manifests were found to evaluate%s. Nothing to scan — Bomly Guard passes.\n' "$eco_note" > "$summary_md"
+  {
+    echo "diff-json=$diff_json"
+    echo "summary-md=$summary_md"
+    echo "sarif-file=$sarif_file"
+    echo "exit-code=0"
+    echo "nothing-to-evaluate=true"
+  } >> "$GITHUB_OUTPUT"
+  exit 0
+fi
+
 if [ "$exit_code" -ne 0 ] && [ "$exit_code" -ne 2 ]; then
   exit "$exit_code"
 fi
@@ -104,4 +127,5 @@ echo "Bomly diff completed with exit code ${exit_code}"
   echo "summary-md=$summary_md"
   echo "sarif-file=$sarif_file"
   echo "exit-code=$exit_code"
+  echo "nothing-to-evaluate=false"
 } >> "$GITHUB_OUTPUT"
