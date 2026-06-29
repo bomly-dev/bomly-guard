@@ -277,3 +277,19 @@ For longer policies, or for policy shared across multiple repositories, use `con
 Use `external-repo-token` when the external configuration repository is private. If it is not set, Bomly Guard uses `repo-token`.
 
 For the full Bomly CLI configuration reference, see the [Bomly CLI docs](https://github.com/bomly-dev/bomly-cli).
+
+## Questions
+
+For questions, ideas, and general support, please use [Bomly Discussions](https://github.com/orgs/bomly-dev/discussions).
+
+Use this repository's issues only for confirmed bugs, regressions, or actionable implementation work.
+
+## Support
+
+Bomly is an open-source project. If you find it useful, you can support the project by starring the repository, sharing feedback, opening issues, contributing improvements, or sponsoring ongoing maintenance.
+
+See [Support Bomly](https://bomly.dev/support).
+
+## License
+
+Bomly CLI is licensed under the [Apache License 2.0](LICENSE).
