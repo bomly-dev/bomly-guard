@@ -278,6 +278,79 @@ Use `external-repo-token` when the external configuration repository is private.
 
 For the full Bomly CLI configuration reference, see the [Bomly CLI docs](https://github.com/bomly-dev/bomly-cli).
 
+## Examples
+
+Each snippet is the `bomly-guard` step only. Reuse the `on:`, `permissions:`, and `actions/checkout` (with `fetch-depth: 0`) from the [Usage](#usage) block above, and add any ecosystem setup your repository needs.
+
+`fail-on` is the switch that turns a finding into a failing job. Vulnerability findings match it by severity (`high`, `critical`, and so on); license, denied-package, and typosquat findings carry no severity, so they match `fail-on: any`. Scope a policy to its own auditor with `auditors` when you want it to gate on its own.
+
+**Block high-severity findings and comment on failures**
+
+```yaml
+- uses: bomly-dev/bomly-guard@v1
+  with:
+    fail-on: high
+    comment-summary-in-pr: on-failure
+```
+
+**Enforce a license policy**
+
+```yaml
+- uses: bomly-dev/bomly-guard@v1
+  with:
+    auditors: license
+    allow-licenses: MIT,Apache-2.0,BSD-3-Clause,ISC
+    deny-licenses: GPL-3.0-only,AGPL-3.0-only
+    fail-on: any
+```
+
+**Watch for typosquatting and blocked packages**
+
+```yaml
+- uses: bomly-dev/bomly-guard@v1
+  with:
+    auditors: package
+    deny-packages: pkg:npm/event-stream
+    protected-packages: react,react-dom,lodash
+    typosquat-mode: fail
+    fail-on: any
+```
+
+**Try it without blocking merges first**
+
+```yaml
+- uses: bomly-dev/bomly-guard@v1
+  with:
+    fail-on: high
+    warn-only: true
+    comment-summary-in-pr: always
+```
+
+**Send findings to GitHub code scanning**
+
+```yaml
+# Requires security-events: write (and actions: read on private repos).
+- uses: bomly-dev/bomly-guard@v1
+  with:
+    fail-on: high
+    upload-sarif: true
+```
+
+**Limit review to one ecosystem**
+
+```yaml
+- uses: bomly-dev/bomly-guard@v1
+  with:
+    fail-on: high
+    ecosystems: npm
+```
+
+See the [Inputs](#inputs) table for every option.
+
+## Contributing
+
+Contributor setup and local testing live in [CONTRIBUTING.md](CONTRIBUTING.md).
+
 ## Questions
 
 For questions, ideas, and general support, please use [Bomly Discussions](https://github.com/orgs/bomly-dev/discussions).
