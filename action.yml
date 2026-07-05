@@ -1,5 +1,5 @@
 name: "Bomly Guard"
-description: "Review dependency changes in pull requests with bomly diff"
+description: "Review dependency changes in pull requests, and block risky ones"
 author: "Bomly"
 branding:
   icon: "shield"
