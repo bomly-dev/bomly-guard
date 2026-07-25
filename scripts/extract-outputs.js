@@ -3,17 +3,26 @@ const fs = require("fs");
 const payload = JSON.parse(fs.readFileSync(process.env.DIFF_JSON, "utf8"));
 const summary = fs.readFileSync(process.env.SUMMARY_MD, "utf8");
 const introduced = payload.audit?.introduced || [];
-const vulnerable = introduced.filter((f) => f.auditor === "vulnerability");
-const invalidLicenses = introduced.filter((f) => f.auditor === "license");
-const denied = introduced.filter(
+const persisted = payload.audit?.persisted || [];
+// The CLI gates on introduced + persisted (auditBlockingFindings in
+// internal/cli/diff_cmd.go). The diff's focused audit graph only covers added,
+// removed, and version-changed packages, so a persisted finding still means
+// "this package change ships a known issue" — not pre-existing debt.
+const blocking = [
+  ...introduced.map((f) => ({ ...f, status: f.status || "introduced" })),
+  ...persisted.map((f) => ({ ...f, status: f.status || "persisted" })),
+];
+const vulnerable = blocking.filter((f) => f.auditor === "vulnerability");
+const invalidLicenses = blocking.filter((f) => f.auditor === "license");
+const denied = blocking.filter(
   (f) => f.auditor === "package" && String(f.id || "").includes("denied-"),
 );
-const suspicious = introduced.filter(
+const suspicious = blocking.filter(
   (f) =>
     f.auditor === "package" &&
     String(f.id || "").includes("suspicious-package"),
 );
-const failing = introduced.filter(
+const failing = blocking.filter(
   (f) => !f.disposition || f.disposition === "fail",
 );
 const comment = capMarkdownTables(summary, 25);
@@ -35,7 +44,7 @@ for (const [name, value] of Object.entries(values)) {
 }
 
 console.log(
-  `Extracted ${introduced.length} introduced findings (${failing.length} failing)`,
+  `Extracted ${introduced.length} introduced + ${persisted.length} persisted findings (${failing.length} failing)`,
 );
 console.log(`Prepared PR comment summary at ${commentPath}`);
 

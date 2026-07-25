@@ -116,16 +116,16 @@ outputs:
     description: All dependency changes as JSON.
     value: ${{ steps.extract.outputs.dependency-changes }}
   vulnerable-changes:
-    description: Introduced vulnerability findings as JSON.
+    description: Blocking (introduced + persisted) vulnerability findings as JSON.
     value: ${{ steps.extract.outputs.vulnerable-changes }}
   invalid-license-changes:
-    description: Introduced license findings as JSON.
+    description: Blocking (introduced + persisted) license findings as JSON.
     value: ${{ steps.extract.outputs.invalid-license-changes }}
   denied-changes:
-    description: Introduced denied package findings as JSON.
+    description: Blocking (introduced + persisted) denied package findings as JSON.
     value: ${{ steps.extract.outputs.denied-changes }}
   suspicious-package-changes:
-    description: Introduced suspicious package findings as JSON.
+    description: Blocking (introduced + persisted) suspicious package findings as JSON.
     value: ${{ steps.extract.outputs.suspicious-package-changes }}
   sarif-file:
     description: Path to the generated SARIF file.
