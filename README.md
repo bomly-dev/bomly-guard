@@ -227,11 +227,13 @@ The action always owns `bomly diff --format json` and its Markdown/SARIF side ou
 
 - `comment-content`: Markdown summary content.
 - `dependency-changes`: JSON dependency diff.
-- `vulnerable-changes`: introduced vulnerability findings.
-- `invalid-license-changes`: introduced license findings.
-- `denied-changes`: introduced denied package findings.
-- `suspicious-package-changes`: introduced suspicious package findings.
+- `vulnerable-changes`: blocking vulnerability findings.
+- `invalid-license-changes`: blocking license findings.
+- `denied-changes`: blocking denied package findings.
+- `suspicious-package-changes`: blocking suspicious package findings.
 - `sarif-file`: path to the generated SARIF file when audit is enabled.
+
+The four finding outputs carry the same set the CLI gates on: **introduced plus persisted** findings. The diff audits only added, removed, and version-changed packages, so a persisted finding means that package change still ships a known issue — it is not pre-existing repository debt. Each finding in those outputs carries a `status` field (`introduced` or `persisted`) so consumers can tell them apart.
 
 ## SARIF Upload
 
