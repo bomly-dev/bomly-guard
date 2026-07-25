@@ -8,9 +8,11 @@ const persisted = payload.audit?.persisted || [];
 // internal/cli/diff_cmd.go). The diff's focused audit graph only covers added,
 // removed, and version-changed packages, so a persisted finding still means
 // "this package change ships a known issue" — not pre-existing debt.
+// status always reflects which list the finding came from, so consumers can
+// rely on it being exactly "introduced" or "persisted".
 const blocking = [
-  ...introduced.map((f) => ({ ...f, status: f.status || "introduced" })),
-  ...persisted.map((f) => ({ ...f, status: f.status || "persisted" })),
+  ...introduced.map((f) => ({ ...f, status: "introduced" })),
+  ...persisted.map((f) => ({ ...f, status: "persisted" })),
 ];
 const vulnerable = blocking.filter((f) => f.auditor === "vulnerability");
 const invalidLicenses = blocking.filter((f) => f.auditor === "license");

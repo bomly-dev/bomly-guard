@@ -120,19 +120,25 @@ test("introduced and persisted findings are combined per auditor", () => {
   );
 });
 
-test("a finding's own status field is preserved", () => {
+test("status always reflects the list a finding came from", () => {
   const { outputs } = extract({
     results: { dependencies: {} },
     audit: {
+      introduced: [
+        { id: "GHSA-aaaa", auditor: "vulnerability", status: "persisted" },
+      ],
       persisted: [
-        { id: "GHSA-aaaa", auditor: "vulnerability", status: "persisted-2" },
+        { id: "GHSA-bbbb", auditor: "vulnerability", status: "whatever" },
       ],
     },
   });
 
   assert.deepEqual(
-    JSON.parse(outputs["vulnerable-changes"]).map((f) => f.status),
-    ["persisted-2"],
+    JSON.parse(outputs["vulnerable-changes"]).map((f) => [f.id, f.status]),
+    [
+      ["GHSA-aaaa", "introduced"],
+      ["GHSA-bbbb", "persisted"],
+    ],
   );
 });
 
